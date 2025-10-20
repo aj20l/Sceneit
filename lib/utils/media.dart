@@ -1,5 +1,5 @@
-import 'package:sceneit/genre_data.dart';
-import 'package:sceneit/person.dart';
+import 'package:sceneit/utils/genre_data.dart';
+import 'package:sceneit/utils/person.dart';
 
 class Media {
   final int id;

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:sceneit/media.dart';
-import 'package:sceneit/genre_data.dart';
+import 'package:sceneit/utils/media.dart';
+import 'package:sceneit/utils/genre_data.dart';
 
 class APIHelper {
   static final String _apiKey = dotenv.env['TMDB_API_KEY'] ?? '';
