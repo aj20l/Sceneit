@@ -18,9 +18,9 @@ class Person {
   static Person fromJson(Map<String, dynamic> json) {
     return Person(
       id: json['id'],
-      order: json['order'] ?? -1,
-      name: json['name'] ?? '',
-      profilePath: json['profile_path'] ?? '',
+      order: json['order']?? -1,
+      name: json['name']?? '',
+      profilePath: json['profile_path']?? '',
       character: json['character'],
       job: json['job'],
     );

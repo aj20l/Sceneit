@@ -40,34 +40,35 @@ class Media {
       genreMapper = GenreData.tvGenres;
     }
     List<int> genreIds = [];
-    if (json['genre_ids'] != null) {
-      genreIds = List<int>.from(json['genre_ids']);
+    genreIds = List<int>.from(json['genre_ids']);
+    for(int id in genreIds) {
+      genres.add(genreMapper[id]?? '');
     }
-    genreIds.map((id) => genres.add(genreMapper[id] ?? ''));
+
     return Media(
       id: json['id'],
-      rating: (json['vote_average'] ?? -1).toDouble(),
-      ratingCount: json['vote_count'] ?? -1,
-      popularity: (json['popularity'] ?? -1).toDouble(),
-      posterPath: json['poster_path'] ?? '',
-      overview: json['overview'] ?? '',
-      title: json['title'] ?? json['name'] ?? '',
-      language: json['original_language'] ?? 'en',
-      releaseDate: json['release_date'] ?? json['first_air_date'] ?? '',
-      mediaType: json['media_type'] ?? 'movie',
+      rating: (json['vote_average']?? -1).toDouble(),
+      ratingCount: json['vote_count']?? -1,
+      popularity: (json['popularity']?? -1).toDouble(),
+      posterPath: json['poster_path']?? '',
+      overview: json['overview']?? '',
+      title: json['title']?? json['name']?? '',
+      language: json['original_language']?? 'en',
+      releaseDate: json['release_date']?? json['first_air_date']?? '',
+      mediaType: json['media_type']?? 'movie',
       genres: genres
     );
   }
-  //set cast, recommendations
+  //this only sets the cast and recommendations which come from an additional API call
   Media setMediaDetails(Map<String, dynamic> json) {
-    List<Map<String, dynamic>> recResult = List<Map<String, dynamic>>.from(json['recommendations']['results']);
+    List<dynamic> recResult = json['recommendations']['results'];
     List<Media> recommendations = [];
     for(var mediaJson in recResult) {
       recommendations.add(Media.fromJson(mediaJson));
     }
     this.recommendations = recommendations;
 
-    List<Map<String, dynamic>> creditsResult = List<Map<String, dynamic>>.from(json['credits']['cast']);
+    List<dynamic> creditsResult = json['credits']['cast'];
     List<Person> cast = [];
     for(var personJson in creditsResult) {
       cast.add(Person.fromJson(personJson));

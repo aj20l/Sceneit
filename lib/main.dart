@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sceneit/widgets/bottom_nav.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
 }
 
@@ -46,21 +47,11 @@ class _LoginPageState extends State<LoginPage> {
 
         );
          //add saving session
-        Navigator.push(context, MaterialPageRoute<void>(
-          builder: (BuildContext context) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('Your Watchlists')),
-              body: Center(
-                child: TextButton(
-                  child: const Text('Insert text'),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-            );
-          },
-        ));
+        Navigator.push(context,
+            MaterialPageRoute(
+              builder: (context) => BottomNav()
+            )
+        );
 
 
 
