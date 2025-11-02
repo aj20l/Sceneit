@@ -90,6 +90,7 @@ class UserModel {
       where: 'username = ? AND password = ?',
       whereArgs: [username, password],
     );
+
     if (result.isNotEmpty) {
       return User.fromMap(result.first);
     }

@@ -35,12 +35,11 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _emailController = TextEditingController();
-  final UserModel _userModel = UserModel();
+final UserModel _userModel = UserModel();
   bool _obscurePassword = true;
 
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async{
     if (_formKey.currentState!.validate()) {
       final username = _usernameController.text.trim();
       final password = _passwordController.text;
@@ -61,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
 
       }
       //add saving session
-      final user = _userModel.getUserByCredentials(username, password);
+      final user = await _userModel.getUserByCredentials(username, password);
       if (user != null) {
         _showMessage('Login successful!');
         Navigator.push(context,
