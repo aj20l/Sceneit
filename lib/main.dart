@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sceneit/widgets/bottom_nav.dart';
 import 'User.dart';
-
+import 'package:sceneit/utils/notification_service.dart';
 
 void main() async {
   runApp(const MyApp());
