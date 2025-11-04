@@ -4,6 +4,8 @@ import 'User.dart';
 import 'package:sceneit/utils/notification_service.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // async setup
+  await NotificationService.init();          // initialize notifications
   runApp(const MyApp());
 }
 
