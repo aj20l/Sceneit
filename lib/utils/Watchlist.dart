@@ -1,91 +1,114 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart' as p;
-import 'media.dart';
-class Watchlist {
+import 'dart:convert';
+import 'package:sceneit/app_database.dart';
+
+class WatchlistItem {
   int? id;
-  final int userId;
-  final String name;
+  int? userId;
+  final int mediaId;
+  final String title;
+  final String mediaType;
+  final Map<String, dynamic> mediaData;
+  final DateTime? notifyDate;
 
-
-  Watchlist({required this.id, required this.userId, required this.name});
+  WatchlistItem({
+    this.id,
+    this.userId,
+    required this.mediaId,
+    required this.title,
+    required this.mediaType,
+    required this.mediaData,
+    this.notifyDate,
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'userid': userId,
-      'name': name,
+      'userId': userId,
+      'mediaId': mediaId,
+      'title': title,
+      'mediaType': mediaType,
+      'mediaData': jsonEncode(mediaData),
+      'notifyDate': notifyDate?.toIso8601String(),
     };
   }
 
-  factory Watchlist.fromMap(Map<String, dynamic> map) {
-    return Watchlist(
+  factory WatchlistItem.fromMap(Map<String, dynamic> map) {
+    return WatchlistItem(
       id: map['id'],
       userId: map['userId'],
-      name: map['name'],
-
+      mediaId: map['mediaId'],
+      title: map['title'],
+      mediaType: map['mediaType'],
+      mediaData: jsonDecode(map['mediaData']),
+      notifyDate:
+      map['notifyDate']!= null ? DateTime.parse(map['notifyDate']): null,
     );
   }
 }
 
-
-
-
-
 class WatchlistModel {
-  static Database? _database;
-
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('watchlists.db');
-    return _database!;
+    return await AppDatabase.database;
   }
 
-  Future<Database> _initDB(String fileName) async {
-    final dbPath = await getDatabasesPath();
-    final path = p.join(dbPath, fileName);
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE watchlists(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            userid INTEGER NOT NULL FOREIGN KEY REFERENCES users(id),
-            name TEXT NOT NULL,
-
-          )
-        ''');
-      },
-    );
-  }
-
-  Future<List<Watchlist>> getAllWatchlist() async {
+  Future<int> insertItem(WatchlistItem item) async {
     final db = await database;
-    final result = await db.query('watchlists');
-    return result.map((map) => Watchlist.fromMap(map)).toList();
+    return await db.insert('watchlist', item.toMap());
   }
 
-  Future<int> insertWatchlist(Watchlist watchlist) async {
+  Future<List<WatchlistItem>> getUserWatchlist(int? userId) async {
     final db = await database;
-    return await db.insert('watchlists', watchlist.toMap());
-  }
 
-  Future<int> updateWatchlist(Watchlist watchlist) async {
+    final List<Map<String, dynamic>> result;
+    //for guest user
+    if(userId == null) {
+      result = await db.query('watchlist',where: 'userId IS NULL');
+    }
+    else {
+      result = await db.query(
+        'watchlist',
+        where: 'userId = ?',
+        whereArgs: [userId],
+      );
+    }
+    return result.map((map) => WatchlistItem.fromMap(map)).toList();
+  }
+  Future<List<WatchlistItem>> getWatchlistItem(int? userId, int mediaId) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> result;
+    //for guest user
+    if(userId == null) {
+      result = await db.query(
+        'watchlist',
+        where: 'userId IS NULL AND mediaId = ?',
+        whereArgs: [mediaId]
+      );
+    }
+    else {
+      result = await db.query(
+        'watchlist',
+        where: 'userId = ? AND mediaId = ?',
+        whereArgs: [userId, mediaId],
+      );
+    }
+    return result.map((map) => WatchlistItem.fromMap(map)).toList();
+  }
+  Future<int> deleteItem(int id) async {
+    final db = await database;
+    return await db.delete(
+        'watchlist',
+        where: 'id = ?',
+        whereArgs: [id]);
+  }
+  Future<int> updateItem(WatchlistItem item) async {
     final db = await database;
     return await db.update(
-      'watchlists',
-      watchlist.toMap(),
+      'watchlist',
+      item.toMap(),
       where: 'id = ?',
-      whereArgs: [watchlist.id],
+      whereArgs: [item.id],
     );
   }
-
-  Future<int> deleteWatchlistById(int id) async {
-    final db = await database;
-    return await db.delete('watchlists', where: 'id = ?', whereArgs: [id]);
-  }
-
-
-
 }

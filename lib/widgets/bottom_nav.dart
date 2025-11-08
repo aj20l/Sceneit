@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sceneit/pages/home.dart';
+import 'package:sceneit/pages/watchlist_page.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,7 +14,7 @@ class _BottomNavState extends State<BottomNav> {
   static const List<Widget> _pages = <Widget>[
     HomePage(),
     Center(child: Text('search', style: TextStyle(fontSize: 24))),
-    Center(child: Text('watchlist', style: TextStyle(fontSize: 24))),
+    WatchlistPage(),
     Center(child: Text('settings', style: TextStyle(fontSize: 24))),
   ];
   @override

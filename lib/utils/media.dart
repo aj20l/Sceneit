@@ -1,5 +1,6 @@
 import 'package:sceneit/utils/genre_data.dart';
 import 'package:sceneit/utils/person.dart';
+import 'dart:convert';
 
 class Media {
   final int id;
@@ -39,8 +40,7 @@ class Media {
     if (json['media_type'] == 'tv') {
       genreMapper = GenreData.tvGenres;
     }
-    List<int> genreIds = [];
-    genreIds = List<int>.from(json['genre_ids']);
+    List<int> genreIds = List<int>.from(json['genre_ids'] ?? []);
     for(int id in genreIds) {
       genres.add(genreMapper[id]?? '');
     }
@@ -58,6 +58,36 @@ class Media {
       mediaType: json['media_type']?? 'movie',
       genres: genres
     );
+  }
+  static Media fromMap(Map<String, dynamic> map) {
+    return Media(
+      id: map['id'],
+      rating: (map['rating'] as num).toDouble(),
+      ratingCount: map['ratingCount'],
+      popularity: (map['popularity'] as num).toDouble(),
+      posterPath: map['posterPath'],
+      overview: map['overview'],
+      title: map['title'],
+      language: map['language'],
+      releaseDate: map['releaseDate'],
+      mediaType: map['mediaType'],
+      genres: List<String>.from(jsonDecode(map['genres'])),
+    );
+  }
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'rating': rating,
+      'ratingCount': ratingCount,
+      'popularity': popularity,
+      'posterPath': posterPath,
+      'overview': overview,
+      'title': title,
+      'language': language,
+      'releaseDate': releaseDate,
+      'mediaType': mediaType,
+      'genres': jsonEncode(genres) //to decode do List<String>.from(jsonDecode(genres))
+    };
   }
   //this only sets the cast and recommendations which come from an additional API call
   Media setMediaDetails(Map<String, dynamic> json) {
