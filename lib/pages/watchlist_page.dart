@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sceneit/utils/Watchlist.dart';
 import 'package:sceneit/utils/media.dart';
 import 'package:sceneit/utils/session.dart';
-
+import 'package:sceneit/utils/notification_service.dart';
+import 'dart:async';
 class WatchlistPage extends StatefulWidget {
   const WatchlistPage({super.key});
 
@@ -69,15 +70,60 @@ class _WatchlistPageState extends State<WatchlistPage> {
                     ),
                       title: Text(media.title),
                       subtitle: Text(media.overview),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        color: Colors.red,
-                        onPressed: () {
-                          _deleteItem(item.id);
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(SnackBar(content: Text(
-                              'Removed ${media.title} from watchlist')));
-                        },
+                      trailing: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 24,
+                            width: 24,
+                          child:IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            color: Colors.red,
+                            onPressed: () {
+                              _deleteItem(item.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Removed ${media.title} from watchlist')),
+                              );
+                            },
+                          ),),
+                          SizedBox(
+                            height: 24,
+                            width: 24,
+                          child:IconButton(
+                            icon: const Icon(Icons.alarm_add),
+                            color: Colors.teal,
+                            onPressed: () async {
+                              // Show  time picker
+                              final TimeOfDay? pickedTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                              );
+
+                              if (pickedTime == null) return;
+
+                              //  scheduled time
+                              final now = DateTime.now();
+                              final scheduled = DateTime(
+                                now.year,
+                                now.month,
+                                now.day,
+                                pickedTime.hour,
+                                pickedTime.minute,
+                              );
+
+
+                              await scheduleNotification(media.title, scheduled);
+
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(
+                                  'Reminder set for ${media.title} at ${pickedTime.format(context)}',
+                                )),
+                              );
+                            },
+                          ),),
+                        ],
                       ),
                     )
                   )
@@ -87,4 +133,18 @@ class _WatchlistPageState extends State<WatchlistPage> {
         }
     );
   }
+}
+Future<void> scheduleNotification(String mediaTitle, DateTime scheduledTime) async {
+  final now = DateTime.now();
+
+  // If the scheduled time is  past, nothing
+  if (scheduledTime.isBefore(now)) return;
+
+  // Calculate  wait time
+  final duration = scheduledTime.difference(now);
+
+  // Schedule a Timer
+  Timer(duration, () {
+    NotificationService.showNotification(title: mediaTitle, body: "Don't forget to watch");
+  });
 }
