@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:sceneit/widgets/bottom_nav.dart';
 import 'User.dart';
 import 'package:sceneit/utils/notification_service.dart';
+import 'package:sceneit/utils/session.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // async setup
-  await NotificationService.init();          // initialize notifications
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   runApp(const MyApp());
 }
 
@@ -37,53 +38,54 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-final UserModel _userModel = UserModel();
+  final UserModel _userModel = UserModel();
   bool _obscurePassword = true;
 
-
-  Future<void> _handleLogin() async{
+  Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       final username = _usernameController.text.trim();
       final password = _passwordController.text;
 
-      // add in reading from tables and compare valid combinations
       if (username.isEmpty || password.isEmpty) {
         _showMessage("Please enter email and password.");
         return;
       }
+
+      // Admin shortcut
       if (username == "admin" && password == "1234") {
-        _showMessage('Login successful!');
-
-        Navigator.push(context,
-            MaterialPageRoute(
-              builder: (context) => BottomNav()
-            )
+        Session.currentUser = User(
+          id: 0,
+          username: 'admin',
+          email: 'admin@example.com',
+          password: '1234',
         );
-
+        _showMessage('Login successful!');
+        Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
+        return;
       }
-      //add saving session
+
       final user = await _userModel.getUserByCredentials(username, password);
       if (user != null) {
+        Session.currentUser = user;
         _showMessage('Login successful!');
-        Navigator.push(context,
-            MaterialPageRoute(
-                builder: (context) => BottomNav()
-            )
-        );
-
-      }
-      else {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
+      } else {
         _showMessage('Invalid credentials');
       }
     }
   }
 
+  void _continueAsGuest() {
+    Session.currentUser = null;
+    Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
+  }
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,7 +104,6 @@ final UserModel _userModel = UserModel();
                 const Icon(Icons.lock_outline, size: 100, color: Colors.indigo),
                 const SizedBox(height: 20),
 
-                //User
                 TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
@@ -119,7 +120,6 @@ final UserModel _userModel = UserModel();
                 ),
                 const SizedBox(height: 16),
 
-                // Password
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -128,14 +128,8 @@ final UserModel _userModel = UserModel();
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   validator: (value) {
@@ -148,30 +142,32 @@ final UserModel _userModel = UserModel();
 
                 const SizedBox(height: 24),
 
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _handleLogin,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    child: const Text("Login", style: TextStyle(fontSize: 18)),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _continueAsGuest,
+                    child: const Text("Continue as guest"),
+                  ),
+                ),
+                const SizedBox(height: 12),
 
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:  () {
+                    onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const RegistrationPage()),
@@ -179,21 +175,14 @@ final UserModel _userModel = UserModel();
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text(
-                      "Sign up",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    child: const Text("Sign up", style: TextStyle(fontSize: 18)),
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () {
-                    // add in forgot password logic
-                  },
+                  onPressed: () {},
                   child: const Text("Forgot password?"),
                 ),
               ],
@@ -204,8 +193,6 @@ final UserModel _userModel = UserModel();
     );
   }
 }
-
-
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -221,6 +208,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final _emailController = TextEditingController();
   final UserModel _userModel = UserModel();
   bool _obscurePassword = false;
+
   Future<void> _signUp() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
@@ -231,27 +219,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
       return;
     }
 
-    final user = User(username: username, email: email, password: password);
-    await _userModel.insertUser(user);
-    _showMessage(" User registered successfully!");
-    Navigator.push(context,
-        MaterialPageRoute(
-            builder: (context) => BottomNav()
-        )
-    );
+    final newUser = User(username: username, email: email, password: password);
+    final id = await _userModel.insertUser(newUser);
+    Session.currentUser = User(id: id, username: username, email: email, password: password);
 
-
-
+    _showMessage("User registered successfully!");
+    Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
   }
-
-
-
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -270,7 +251,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 const Icon(Icons.lock_outline, size: 100, color: Colors.indigo),
                 const SizedBox(height: 20),
 
-                //User
                 TextFormField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
@@ -286,7 +266,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                //Email
+
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -303,7 +283,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Password
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -312,14 +291,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     border: const OutlineInputBorder(),
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   validator: (value) {
@@ -332,33 +305,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
                 const SizedBox(height: 24),
 
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    child: const Text(
-                      "Register",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                    child: const Text("Register", style: TextStyle(fontSize: 18)),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-
-
-                TextButton(
-                  onPressed: () {
-                    // add in forgot password logic
-                  },
-                  child: const Text("Forgot password?"),
-                ),
+                TextButton(onPressed: () {}, child: const Text("Forgot password?")),
               ],
             ),
           ),
@@ -367,6 +327,3 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 }
-
-
-

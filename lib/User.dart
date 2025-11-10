@@ -7,7 +7,12 @@ class User {
   final String email;
   String password;
 
-  User({this.id, required this.username, required this.email, required this.password,});
+  User({
+    this.id,
+    required this.username,
+    required this.email,
+    required this.password,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -29,25 +34,22 @@ class User {
 }
 
 class UserModel {
-
-  Future<Database> get database async {
-    return await AppDatabase.database;
-  }
+  Future<Database> get database async => AppDatabase.database;
 
   Future<List<User>> getAllUsers() async {
     final db = await database;
     final result = await db.query('users');
-    return result.map((map) => User.fromMap(map)).toList();
-  }
+    return result.map((m) => User.fromMap(m)).toList();
+    }
 
   Future<int> insertUser(User user) async {
     final db = await database;
-    return await db.insert('users', user.toMap());
+    return db.insert('users', user.toMap());
   }
 
   Future<int> updateUser(User user) async {
     final db = await database;
-    return await db.update(
+    return db.update(
       'users',
       user.toMap(),
       where: 'id = ?',
@@ -57,7 +59,7 @@ class UserModel {
 
   Future<int> deleteUserById(int id) async {
     final db = await database;
-    return await db.delete('users', where: 'id = ?', whereArgs: [id]);
+    return db.delete('users', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<User?> getUserByCredentials(String username, String password) async {
@@ -67,12 +69,9 @@ class UserModel {
       where: 'username = ? AND password = ?',
       whereArgs: [username, password],
     );
-
     if (result.isNotEmpty) {
       return User.fromMap(result.first);
     }
     return null;
   }
-
-
 }
