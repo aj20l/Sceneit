@@ -4,6 +4,7 @@ import 'package:sceneit/utils/api_helper.dart';
 import 'package:sceneit/utils/genre_data.dart';
 import 'package:sceneit/utils/media.dart';
 import 'package:sceneit/widgets/media_tile.dart';
+import 'package:sceneit/pages/media_details.dart';
 
 class HomePage extends StatelessWidget {
 
@@ -54,23 +55,18 @@ class HomePage extends StatelessWidget {
               if (!snapshot.hasData) {
                 return Center(child: CircularProgressIndicator());
               }
-              return
-                ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, i) {
-                    final media = snapshot.data![i];
-                    return MediaTile(
-                      width: 120.0,
-                      media: media,
-                      imgBaseUrl: _imgBaseUrl,
-                      onTap: () =>
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(SnackBar(content: Text(
-                              'Tapped ${media.title}'))),
-                    );
-                  },
-                );
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, i) {
+                  final media = snapshot.data![i];
+                  return MediaTile(
+                    width: 120.0,
+                    media: media,
+                    imgBaseUrl: _imgBaseUrl,
+                  );
+                },
+              );
             },
           ),
         ),

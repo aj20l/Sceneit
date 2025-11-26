@@ -3,10 +3,12 @@ import 'package:sceneit/widgets/bottom_nav.dart';
 import 'User.dart';
 import 'package:sceneit/utils/notification_service.dart';
 import 'package:sceneit/utils/session.dart';
+import 'package:sceneit/utils/api_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
+  await APIHelper.fetchGenres();
   runApp(const MyApp());
 }
 

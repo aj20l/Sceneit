@@ -28,7 +28,7 @@ class _BottomNavState extends State<BottomNav> {
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
+        selectedItemColor: Colors.indigo,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {

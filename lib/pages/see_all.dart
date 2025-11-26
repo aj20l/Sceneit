@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sceneit/pages/media_details.dart';
 import 'package:sceneit/utils/api_helper.dart';
 import 'package:sceneit/utils/genre_data.dart';
 import 'package:sceneit/utils/media.dart';
@@ -44,9 +45,6 @@ class SeeAllPage extends StatelessWidget {
                   width: 10,
                   media: media,
                   imgBaseUrl: _imgBaseUrl,
-                  onTap:() => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Tapped ${media.title}')),
-                  )
                 );
               }
             );

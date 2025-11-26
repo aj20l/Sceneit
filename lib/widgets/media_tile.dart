@@ -3,9 +3,10 @@ import 'package:sceneit/utils/media.dart';
 import 'package:sceneit/utils/Watchlist.dart';
 import 'package:sceneit/utils/session.dart';
 
+import '../pages/media_details.dart';
+
 class MediaTile extends StatefulWidget {
   final Media media;
-  final VoidCallback? onTap;
   final String imgBaseUrl;
   final double width;
 
@@ -14,7 +15,6 @@ class MediaTile extends StatefulWidget {
     required this.media,
     required this.imgBaseUrl,
     required this.width,
-    this.onTap
   });
 
   @override
@@ -93,7 +93,16 @@ class _MediaTileState extends State<MediaTile> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
-                          onTap: widget.onTap,
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MediaDetailsPage(baseMedia: widget.media),
+                              ),
+                            ).then((_) {
+                              _loadIsWatchlist();
+                            });
+                          },
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
