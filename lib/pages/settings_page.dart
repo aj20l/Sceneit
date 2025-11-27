@@ -4,9 +4,9 @@ import 'package:sceneit/widgets/User.dart'; // Your User model
 import 'package:sceneit/main.dart'; // For LoginPage
 
 class SettingsPage extends StatefulWidget {
-  final User currentUser;
+  final User? currentUser; // <-- make nullable
 
-  const SettingsPage({super.key, required this.currentUser});
+  const SettingsPage({super.key, this.currentUser});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -49,6 +49,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = widget.currentUser;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings & Profile')),
       body: ListView(
@@ -56,12 +58,12 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Username'),
-            subtitle: Text(widget.currentUser.username),
+            subtitle: Text(user?.username ?? 'Guest'),
           ),
           ListTile(
             leading: const Icon(Icons.email),
             title: const Text('Email'),
-            subtitle: Text(widget.currentUser.email),
+            subtitle: Text(user?.email ?? 'Not available'),
           ),
           ListTile(
             leading: const Icon(Icons.language),
