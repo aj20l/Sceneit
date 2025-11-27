@@ -11,7 +11,6 @@ import 'package:sceneit/utils/Watchlist.dart';
 import 'package:sceneit/utils/session.dart';
 
 
-/// Flutter code sample for [SearchBar].
 
 
 
@@ -110,7 +109,7 @@ class _SearchPageState extends State<SearchPage> {
                   title: Text(title),
                   subtitle: Text(
                     movie.releaseDate
-                  ),//add ti watchlist
+                  ),//add to watchlist
                   onTap: () {      WatchlistItem item = WatchlistItem(
                       userId: Session.currentUser?.id,
                       mediaId: movie.id,
