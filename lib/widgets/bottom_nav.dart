@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sceneit/pages/home.dart';
 import 'package:sceneit/pages/watchlist_page.dart';
+import 'package:sceneit/pages/Search.dart';
+import 'package:sceneit/pages/settings_page.dart';
+import 'package:sceneit/utils/session.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,9 +16,9 @@ class _BottomNavState extends State<BottomNav> {
 
   static const List<Widget> _pages = <Widget>[
     HomePage(),
-    Center(child: Text('search', style: TextStyle(fontSize: 24))),
+    SearchPage(),
     WatchlistPage(),
-    Center(child: Text('settings', style: TextStyle(fontSize: 24))),
+    SettingsPage()
   ];
   @override
   void initState() {

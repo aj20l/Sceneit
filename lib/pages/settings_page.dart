@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sceneit/widgets/User.dart'; // Your User model
-import 'package:sceneit/main.dart'; // For LoginPage
+import 'package:sceneit/User.dart'; // Your User model
+import 'package:sceneit/main.dart';
+
+import 'package:sceneit/utils/session.dart';
 
 class SettingsPage extends StatefulWidget {
-  final User? currentUser; // <-- make nullable
 
-  const SettingsPage({super.key, this.currentUser});
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -49,7 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = widget.currentUser;
+    final user = Session.currentUser;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings & Profile')),
