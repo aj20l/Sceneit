@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sceneit/User.dart'; // Your User model
 import 'package:sceneit/main.dart';
-
 import 'package:sceneit/utils/session.dart';
 
 class SettingsPage extends StatefulWidget {
-
   const SettingsPage({super.key});
 
   @override
@@ -15,7 +13,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _language = 'English';
-  bool _darkMode = false;
 
   @override
   void initState() {
@@ -27,14 +24,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _language = prefs.getString('language') ?? 'English';
-      _darkMode = prefs.getBool('darkMode') ?? false;
     });
   }
 
   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', _language);
-    await prefs.setBool('darkMode', _darkMode);
   }
 
   Future<void> _logout() async {
@@ -91,15 +86,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() => _language = result);
                 _savePreferences();
               }
-            },
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.brightness_6),
-            title: const Text('Dark Mode'),
-            value: _darkMode,
-            onChanged: (val) {
-              setState(() => _darkMode = val);
-              _savePreferences();
             },
           ),
           ListTile(
