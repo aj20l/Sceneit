@@ -1,6 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sceneit/User.dart'; // Your User model
 import 'package:sceneit/main.dart';
 import 'package:sceneit/utils/session.dart';
 
@@ -38,7 +38,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+      MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
     );
   }
@@ -48,52 +48,174 @@ class _SettingsPageState extends State<SettingsPage> {
     final user = Session.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings & Profile')),
-      body: ListView(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Username'),
-            subtitle: Text(user?.username ?? 'Guest'),
+      extendBody: true,
+      backgroundColor: Colors.transparent,
+
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF3A30FF), Color(0xFF1D1A47)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          ListTile(
-            leading: const Icon(Icons.email),
-            title: const Text('Email'),
-            subtitle: Text(user?.email ?? 'Not available'),
-          ),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: const Text('Language'),
-            subtitle: Text(_language),
-            onTap: () async {
-              final result = await showDialog<String>(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  title: const Text('Select Language'),
-                  children: [
-                    SimpleDialogOption(
-                      onPressed: () => Navigator.pop(context, 'English'),
-                      child: const Text('English'),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Settings & Profile",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(blurRadius: 10, color: Colors.white24),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 25),
+
+                          _glassTile(
+                            icon: Icons.person,
+                            title: "Username",
+                            subtitle: user?.username ?? "Guest",
+                          ),
+                          _glassTile(
+                            icon: Icons.email,
+                            title: "Email",
+                            subtitle: user?.email ?? "Not available",
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final result = await _languageDialog();
+                              if (result != null) {
+                                setState(() => _language = result);
+                                _savePreferences();
+                              }
+                            },
+                            child: _glassTile(
+                              icon: Icons.language,
+                              title: "Language",
+                              subtitle: _language,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _logout,
+                            child: _glassTile(
+                              icon: Icons.logout,
+                              title: "Logout",
+                              subtitle: "Tap to sign out",
+                              color: Colors.redAccent.withOpacity(.7),
+                            ),
+                          ),
+
+                          const Spacer(),
+
+                          const SizedBox(height: 25),
+                        ],
+                      ),
                     ),
-                    SimpleDialogOption(
-                      onPressed: () => Navigator.pop(context, 'French'),
-                      child: const Text('French'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _glassTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Color? color,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(.09),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: color ?? Colors.white, size: 28),
+                const SizedBox(width: 15),
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
-              );
-              if (result != null) {
-                setState(() => _language = result);
-                _savePreferences();
-              }
-            },
+              ],
+            ),
           ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
-            onTap: _logout,
+        ),
+      ),
+    );
+  }
+
+  Future<String?> _languageDialog() async {
+    return showDialog<String>(
+      context: context,
+      builder: (_) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: AlertDialog(
+          backgroundColor: Colors.white.withOpacity(.12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
+          title: const Text(
+            "Select Language",
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [_dialogOption("English"), _dialogOption("French")],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dialogOption(String lang) {
+    return TextButton(
+      onPressed: () => Navigator.pop(context, lang),
+      child: Text(
+        lang,
+        style: const TextStyle(color: Colors.white, fontSize: 16),
       ),
     );
   }

@@ -1,9 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sceneit/widgets/bottom_nav.dart';
 import 'User.dart';
-import 'package:sceneit/utils/notification_service.dart';
 import 'package:sceneit/utils/session.dart';
 import 'package:sceneit/utils/api_helper.dart';
+import 'package:sceneit/utils/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,10 +20,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'SceneIt',
+      title: "SceneIt",
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
+        fontFamily: "sans-serif",
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent),
       ),
       home: const LoginPage(),
     );
@@ -31,161 +33,79 @@ class MyApp extends StatelessWidget {
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final UserModel _userModel = UserModel();
-  bool _obscurePassword = true;
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
+  final TextEditingController username = TextEditingController();
+  final TextEditingController password = TextEditingController();
+  bool hide = true;
 
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      final username = _usernameController.text.trim();
-      final password = _passwordController.text;
+  late AnimationController anim;
+  late Animation<double> fade;
 
-      if (username.isEmpty || password.isEmpty) {
-        _showMessage("Please enter email and password.");
-        return;
-      }
-
-      // Admin shortcut
-      if (username == "admin" && password == "1234") {
-        Session.currentUser = User(
-          id: 0,
-          username: 'admin',
-          email: 'admin@example.com',
-          password: '1234',
-        );
-        _showMessage('Login successful!');
-        Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
-        return;
-      }
-
-      final user = await _userModel.getUserByCredentials(username, password);
-      if (user != null) {
-        Session.currentUser = user;
-        _showMessage('Login successful!');
-        Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
-      } else {
-        _showMessage('Invalid credentials');
-      }
-    }
-  }
-
-  void _continueAsGuest() {
-    Session.currentUser = null;
-    Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-    );
+  @override
+  void initState() {
+    super.initState();
+    anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+    fade = CurvedAnimation(curve: Curves.easeOutBack, parent: anim);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login Page"),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
+      body: _background(
+        child: FadeTransition(
+          opacity: fade,
+          child: _glassCard(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.lock_outline, size: 100, color: Colors.indigo),
-                const SizedBox(height: 20),
-
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: "Username",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your username';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text("Login", style: TextStyle(fontSize: 18)),
-                  ),
+                const Icon(
+                  Icons.movie_filter_rounded,
+                  size: 95,
+                  color: Colors.white,
                 ),
                 const SizedBox(height: 12),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: _continueAsGuest,
-                    child: const Text("Continue as guest"),
+                const Text(
+                  "SceneIt 🎬",
+                  style: TextStyle(
+                    fontSize: 33,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 12),
 
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegistrationPage()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text("Sign up", style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 35),
+                _input(username, "Username", Icons.person),
+                const SizedBox(height: 14),
+                _input(password, "Password", Icons.lock, isPass: true),
+
+                const SizedBox(height: 28),
+                _mainBtn("Login", () => _login()),
+                const SizedBox(height: 10),
+                _outlineBtn("Continue as guest", () {
+                  Session.currentUser = null;
+                  go(const BottomNav());
+                }),
+
+                const SizedBox(height: 14),
+                GestureDetector(
+                  onTap: () => go(const RegisterPage()),
+                  child: const Text(
+                    "Create New Account",
+                    style: TextStyle(color: Colors.white70, fontSize: 15),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text("Forgot password?"),
+                const SizedBox(height: 5),
+                const Text(
+                  "Forgot password?",
+                  style: TextStyle(color: Colors.white54, fontSize: 14),
                 ),
               ],
             ),
@@ -194,138 +114,290 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
+  Future<void> _login() async {
+    String user = username.text.trim();
+    String pass = password.text.trim();
+    if (user.isEmpty || pass.isEmpty) return message("Fill all fields");
+
+    if (user == "admin" && pass == "1234") {
+      Session.currentUser = User(
+        id: 0,
+        username: "admin",
+        email: "admin@mail.com",
+        password: pass,
+      );
+      return go(const BottomNav());
+    }
+
+    final model = UserModel();
+    final found = await model.getUserByCredentials(user, pass);
+
+    found == null ? message("Invalid login") : go(const BottomNav());
+  }
+
+  Widget _background({required Widget child}) => Container(
+    width: double.infinity,
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Color(0xFF3A30FF), Color(0xFF1D1A47)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+    child: Center(child: child),
+  );
+
+  Widget _glassCard({required Widget child}) => ClipRRect(
+    borderRadius: BorderRadius.circular(26),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+      child: Container(
+        width: 380,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          color: Colors.white.withOpacity(.09),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: child,
+      ),
+    ),
+  );
+
+  Widget _input(
+    TextEditingController c,
+    String text,
+    IconData icon, {
+    bool isPass = false,
+  }) {
+    return TextField(
+      controller: c,
+      obscureText: isPass ? hide : false,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: text,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white70),
+        suffixIcon: isPass
+            ? IconButton(
+                icon: Icon(
+                  hide ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () => setState(() => hide = !hide),
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white.withOpacity(.07),
+        border: _border(),
+        enabledBorder: _border(op: .4),
+        focusedBorder: _border(width: 1.5),
+      ),
+    );
+  }
+
+  OutlineInputBorder _border({double op = 1, double width = .9}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: Colors.white.withOpacity(op),
+          width: width,
+        ),
+      );
+
+  Widget _mainBtn(String t, Function onTap) => SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepPurpleAccent,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        foregroundColor: Colors.white,
+      ),
+      onPressed: () => onTap(),
+      child: Text(t, style: const TextStyle(fontSize: 18, color: Colors.white)),
+    ),
+  );
+
+  Widget _outlineBtn(String text, Function tap) => SizedBox(
+    width: double.infinity,
+    child: OutlinedButton(
+      onPressed: () => tap(),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: const BorderSide(color: Colors.white70),
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      child: Text(text, style: const TextStyle(fontSize: 16)),
+    ),
+  );
+
+  void go(Widget p) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => p));
+
+  void message(String m) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 }
 
-class RegistrationPage extends StatefulWidget {
-  const RegistrationPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController user = TextEditingController();
+  final TextEditingController email = TextEditingController();
+  final TextEditingController pass = TextEditingController();
+  bool show = false;
 
   @override
-  State<RegistrationPage> createState() => _RegistrationPageState();
-}
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: _bg,
+        child: Center(
+          child: _glass(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Create Account",
+                  style: TextStyle(
+                    fontSize: 29,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 25),
 
-class _RegistrationPageState extends State<RegistrationPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final _emailController = TextEditingController();
-  final UserModel _userModel = UserModel();
-  bool _obscurePassword = false;
+                _field(user, "Username", Icons.person),
+                const SizedBox(height: 13),
+                _field(email, "Email", Icons.email),
+                const SizedBox(height: 13),
+                _field(pass, "Password", Icons.key, passField: true),
 
-  Future<void> _signUp() async {
-    final username = _usernameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+                const SizedBox(height: 25),
+                _btn("Register", register),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-    if (username.isEmpty || email.isEmpty || password.isEmpty) {
-      _showMessage("Please fill all fields.");
+  Future<void> register() async {
+    if (user.text.isEmpty || email.text.isEmpty || pass.text.isEmpty) {
+      msg("Fill all fields");
       return;
     }
 
-    final newUser = User(username: username, email: email, password: password);
-    final id = await _userModel.insertUser(newUser);
-    Session.currentUser = User(id: id, username: username, email: email, password: password);
+    final model = UserModel();
+    final id = await model.insertUser(
+      User(username: user.text, email: email.text, password: pass.text),
+    );
 
-    _showMessage("User registered successfully!");
-    Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNav()));
+    Session.currentUser = User(
+      id: id,
+      username: user.text,
+      email: email.text,
+      password: pass.text,
+    );
+
+    go(const BottomNav());
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+  Widget _field(
+    TextEditingController c,
+    String l,
+    IconData ic, {
+    bool passField = false,
+  }) {
+    return TextField(
+      controller: c,
+      obscureText: passField ? !show : false,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: l,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(ic, color: Colors.white70),
+        suffixIcon: passField
+            ? IconButton(
+                icon: Icon(
+                  show ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white70,
+                ),
+                onPressed: () => setState(() => show = !show),
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white.withOpacity(.07),
+        border: _b(),
+        enabledBorder: _b(opacity: .4),
+        focusedBorder: _b(width: 1.5),
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Registration"),
-        centerTitle: true,
+  OutlineInputBorder _b({double opacity = 1, double width = .9}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: Colors.white.withOpacity(opacity),
+          width: width,
+        ),
+      );
+
+  Widget _btn(String t, Function tap) => SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.deepPurpleAccent,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        foregroundColor: Colors.white,
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.lock_outline, size: 100, color: Colors.indigo),
-                const SizedBox(height: 20),
-
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: "Username",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your username';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: "Email",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter your email address';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _signUp,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text("Register", style: TextStyle(fontSize: 18)),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                TextButton(onPressed: () {}, child: const Text("Forgot password?")),
-              ],
-            ),
-          ),
+      onPressed: () => tap(),
+      child: const Text(
+        "Register",
+        style: TextStyle(
+          fontSize: 18,
+          color: Colors.white,
         ),
       ),
-    );
-  }
+    ),
+  );
+
+  Widget _glass({required Widget child}) => ClipRRect(
+    borderRadius: BorderRadius.circular(26),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+      child: Container(
+        width: 380,
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          color: Colors.white.withOpacity(.09),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: child,
+      ),
+    ),
+  );
+
+  final _bg = const BoxDecoration(
+    gradient: LinearGradient(
+      colors: [Color(0xFF3A30FF), Color(0xFF1D1A47)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  );
+
+  void go(Widget p) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => p));
+  void msg(String t) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t)));
 }
