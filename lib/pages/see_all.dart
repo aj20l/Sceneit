@@ -53,4 +53,4 @@ class SeeAllPage extends StatelessWidget {
       )
     );
   }
-}
+}// force
