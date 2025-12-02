@@ -262,7 +262,15 @@ class _RegisterPageState extends State<RegisterPage> {
           child: _glass(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                ),
+
+                const SizedBox(height: 5),
                 const Text(
                   "Create Account",
                   style: TextStyle(
