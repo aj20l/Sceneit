@@ -246,6 +246,9 @@ class _SearchPageState extends State<SearchPage> {
                             );
                           }
                           final media = results[idx];
+                          final posterUrl = media.posterPath == null
+                              ? null
+                              : 'https://image.tmdb.org/t/p/w200${media.posterPath}';
                           return Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
@@ -253,33 +256,42 @@ class _SearchPageState extends State<SearchPage> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white24),
                             ),
+
                             child: Row(
                               children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    'https://image.tmdb.org/t/p/w200${media.posterPath}',
-                                    width: 84,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (c, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child;
-                                          return SizedBox(
-                                            width: 84,
-                                            height: 120,
-                                            child: Center(
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Colors.white60,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                  ),
+                              SizedBox(
+                              width: 84,
+                              height: 120,
+
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: posterUrl == null
+                                    ? Image.asset(//in the event there is no poster available
+                                  'assets/fallback.jpg',
+                                  width: 84,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.network(
+                                  posterUrl,
+                                  width: 84,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  cacheWidth: 84,
+                                  cacheHeight: 120,
+                                  errorBuilder: (context, error, stack) {
+                                    return Image.asset(
+                                      'assets/fallback.jpg',
+                                      width: 84,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
                                 ),
-                                const SizedBox(width: 12),
+                              ),
+                            ),
+
+                              const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     media.title,
