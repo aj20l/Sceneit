@@ -43,7 +43,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
+        _scrollController.position.maxScrollExtent - 200 &&
         !_isRequesting &&
         !_isEnd) {
       _loadNextPage();
@@ -81,26 +81,34 @@ class _SearchPageState extends State<SearchPage> {
 
     _fetchPage(query, 1, thisQueryId)
         .then((fetched) {
-          if (!mounted) return;
-          if (thisQueryId != _currentQueryId) return;
+      if (!mounted) return;
+      if (thisQueryId != _currentQueryId) return;
 
-          setState(() {
-            results = fetched;
-            _currentPage = 1;
-            _isRequesting = false;
-            _isEnd = fetched.length < _pageSize;
-          });
+      setState(() {
+        results = fetched;
+        _currentPage = 1;
+        _isRequesting = false;
+        _isEnd = fetched.length < _pageSize;
+      });
+
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
           _scrollController.jumpTo(0);
-        })
+        }
+      });
+
+
+    })
         .catchError((err) {
-          if (!mounted) return;
-          setState(() {
-            _isRequesting = false;
-          });
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Search failed: $err')));
-        });
+      if (!mounted) return;
+      setState(() {
+        _isRequesting = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Search failed: $err')));
+    });
   }
 
   Future<void> _loadNextPage() async {
@@ -217,105 +225,106 @@ class _SearchPageState extends State<SearchPage> {
               Expanded(
                 child: _isRequesting && results.isEmpty
                     ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
                     : results.isEmpty
                     ? const Center(
-                        child: Text(
-                          'Start typing to search...',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      )
+                  child: Text(
+                    'Start typing to search...',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                )
                     : ListView.builder(
-                        controller: _scrollController,
-                        itemCount:
-                            results.length + (_isRequesting && !_isEnd ? 1 : 0),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 12,
+                  controller: _scrollController,
+                  itemCount: results.length +
+                      (_isRequesting && !_isEnd ? 1 : 0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
+                  ),
+                  itemBuilder: (context, idx) {
+                    if (idx == results.length) {
+                      return const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
                         ),
-                        itemBuilder: (context, idx) {
-                          if (idx == results.length) {
-                            return const Padding(
-                              padding: EdgeInsets.all(12),
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            );
-                          }
-                          final media = results[idx];
-                          final posterUrl = media.posterPath == null
-                              ? null
-                              : 'https://image.tmdb.org/t/p/w200${media.posterPath}';
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.07),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white24),
-                            ),
-
-                            child: Row(
-                              children: [
-                              SizedBox(
-                              width: 84,
-                              height: 120,
-
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: posterUrl == null
-                                    ? Image.asset(//in the event there is no poster available
-                                  'assets/fallback.jpg',
-                                  width: 84,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                )
-                                    : Image.network(
-                                  posterUrl,
-                                  width: 84,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                  cacheWidth: 84,
-                                  cacheHeight: 120,
-                                  errorBuilder: (context, error, stack) {
-                                    return Image.asset(
-                                      'assets/fallback.jpg',
-                                      width: 84,
-                                      height: 120,
-                                      fit: BoxFit.cover,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-
-                              const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    media.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => _addToWatchlist(media),
-                                  icon: const Icon(
-                                    Icons.bookmark_add,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                      );
+                    }
+                    final media = results[idx];
+                    final posterUrl = media.posterPath == null
+                        ? null
+                        : 'https://image.tmdb.org/t/p/w200${media.posterPath}';
+                    return Container(
+                      margin:
+                      const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
                       ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 84,
+                            height: 120,
+                            child: ClipRRect(
+                              borderRadius:
+                              BorderRadius.circular(10),
+                              child: posterUrl == null
+                                  ? Image.asset(
+                                'assets/fallback.jpg',
+                                width: 84,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              )
+                                  : Image.network(
+                                posterUrl,
+                                width: 84,
+                                height: 120,
+                                fit: BoxFit.cover,
+                                cacheWidth: 84,
+                                cacheHeight: 120,
+                                errorBuilder: (context, error,
+                                    stack) {
+                                  return Image.asset(
+                                    'assets/fallback.jpg',
+                                    width: 84,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              media.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () =>
+                                _addToWatchlist(media),
+                            icon: const Icon(
+                              Icons.bookmark_add,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
